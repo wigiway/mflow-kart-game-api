@@ -20,8 +20,12 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const app = express();
 app.use(cors());
 app.use(express.json()); // สำหรับ parsing application/json
-app.use(bodyParser.json()); // สำหรับรับ JSON data
-app.use(bodyParser.urlencoded({ extended: true })); // สำหรับรับ URL-encoded data
+
+//app.use(bodyParser.json()); // สำหรับรับ JSON data
+//app.use(bodyParser.urlencoded({ extended: true })); // สำหรับรับ URL-encoded data
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 // ตั้งค่า route ต่างๆ
 app.get('/test11', (req, res) => {
@@ -214,7 +218,8 @@ app.post('/addPlayer', async (req, res) => {
   
   
 
-const port = 3000;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+  
