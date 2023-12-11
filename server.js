@@ -214,6 +214,34 @@ app.post('/addPlayer', async (req, res) => {
       res.status(500).send(error);
     }
   });
+
+app.post('/checkName', async (req, res) => {
+  const userName = req.body.name;
+
+  const params = {
+    TableName: "user-mflow",
+    IndexName: "name-index", // ถ้ามี index สำหรับ name
+    KeyConditionExpression: "name = :name",
+    ExpressionAttributeValues: {
+      ":name": userName
+    }
+  };
+
+  try {
+    const data = await dynamoDB.query(params).promise();
+    
+    // ตรวจสอบว่าพบ name ในฐานข้อมูลหรือไม่
+    if (data.Items && data.Items.length > 0) {
+      res.status(200).send("มีผู้ใช้ชื่อนี้ไปแล้ว"); // ชื่อซ้ำ
+    } else {
+      res.status(200).send("สมัครสำเร็จ"); // ชื่อไม่ซ้ำ
+    }
+  } catch (error) {
+    console.error("Error in checking name:", error);
+    res.status(500).send(error);
+  }
+});
+
   
   
   
