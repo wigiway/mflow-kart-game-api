@@ -220,8 +220,7 @@ app.post('/checkName', async (req, res) => {
 
   const params = {
     TableName: "user-mflow",
-    IndexName: "name-index", // ตรวจสอบว่าตารางของคุณมี secondary index สำหรับ name
-    KeyConditionExpression: "#nm = :name",
+    FilterExpression: "#nm = :name",
     ExpressionAttributeNames: {
       "#nm": "name"
     },
@@ -231,9 +230,8 @@ app.post('/checkName', async (req, res) => {
   };
 
   try {
-    const data = await dynamoDB.query(params).promise();
+    const data = await dynamoDB.scan(params).promise();
     
-    // ตรวจสอบว่าพบ name ในฐานข้อมูลหรือไม่
     if (data.Items && data.Items.length > 0) {
       res.status(200).send("มีผู้ใช้ชื่อนี้ไปแล้ว"); // ชื่อซ้ำ
     } else {
@@ -244,6 +242,7 @@ app.post('/checkName', async (req, res) => {
     res.status(500).send(error);
   }
 });
+
 
 
   
