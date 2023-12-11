@@ -220,8 +220,11 @@ app.post('/checkName', async (req, res) => {
 
   const params = {
     TableName: "user-mflow",
-    IndexName: "name-index", // ถ้ามี index สำหรับ name
-    KeyConditionExpression: "name = :name",
+    IndexName: "name-index", // ตรวจสอบว่าตารางของคุณมี secondary index สำหรับ name
+    KeyConditionExpression: "#nm = :name",
+    ExpressionAttributeNames: {
+      "#nm": "name"
+    },
     ExpressionAttributeValues: {
       ":name": userName
     }
@@ -241,6 +244,7 @@ app.post('/checkName', async (req, res) => {
     res.status(500).send(error);
   }
 });
+
 
   
   
