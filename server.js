@@ -117,7 +117,7 @@ app.post('/addPlayer', async (req, res) => {
       res.status(500).send(error);
     }
   });
-  
+
   
   //Update Score User
   app.post('/updateScore/:id', async (req, res) => {
@@ -244,6 +244,40 @@ app.post('/checkName', async (req, res) => {
 });
 
 
+app.get('/resetUserScores', async (req, res) => {
+  const params = {
+    TableName: "user-mflow"
+  };
+
+  try {
+    const data = await dynamoDB.scan(params).promise();
+    if (data.Items && data.Items.length > 0) {
+      // Loop through each user and set score to 0
+      data.Items.forEach(async (user) => {
+        const updateParams = {
+          TableName: "user-mflow",
+          Key: {
+            userId: user.userId // Assuming your user has a unique identifier named userId
+          },
+          UpdateExpression: "SET score = :score",
+          ExpressionAttributeValues: {
+            ":score": 0
+          },
+          ReturnValues: "ALL_NEW" // Change if needed
+        };
+
+        await dynamoDB.update(updateParams).promise();
+      });
+
+      res.status(200).json({ message: 'User scores reset successfully' });
+    } else {
+      res.status(404).send('No users found');
+    }
+  } catch (error) {
+    console.error("Error resetting user scores:", error);
+    res.status(500).send(error);
+  }
+});
 
   
   
