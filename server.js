@@ -289,12 +289,11 @@ app.get('/resetUserScores', async (req, res) => {
 });
 
   
- app.post('/CreateKeysUnlock', async (req, res) => {
+app.post('/CreateKeysUnlock', async (req, res) => {
   const keys = [];
   for (let i = 0; i < 500; i++) {
     keys.push({
-      id: uuidv4(),
-      key: generateKey(),
+      'key-unlock': generateKey(),
       used: false
     });
   }
@@ -324,19 +323,15 @@ app.post('/UseKeyUnlock', async (req, res) => {
 
   const params = {
     TableName: 'duct-users-keys',
-    FilterExpression: 'key = :key and used = :used',
-    ExpressionAttributeValues: {
-      ':key': key,
-      ':used': false
-    }
+    Key: { 'key-unlock': key }
   };
 
   try {
-    const data = await dynamoDB.scan(params).promise();
-    if (data.Items.length === 1) {
+    const data = await dynamoDB.get(params).promise();
+    if (data.Item && !data.Item.used) {
       const updateParams = {
         TableName: 'duct-users-keys',
-        Key: { id: data.Items[0].id },
+        Key: { 'key-unlock': key },
         UpdateExpression: 'set used = :used',
         ExpressionAttributeValues: {
           ':used': true
@@ -353,7 +348,7 @@ app.post('/UseKeyUnlock', async (req, res) => {
     console.error('Error using key:', error);
     res.status(500).send(error);
   }
-}); 
+});
   
 
   const port = process.env.PORT || 3000;
