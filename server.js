@@ -298,13 +298,15 @@ app.post('/CreateKeysUnlock', async (req, res) => {
     });
   }
 
+  const writeRequests = keys.map(item => ({
+    PutRequest: {
+      Item: item
+    }
+  }));
+
   const params = {
     RequestItems: {
-      'duct-users-keys': keys.map(item => ({
-        PutRequest: {
-          Item: item
-        }
-      }))
+      'duct-users-keys': writeRequests
     }
   };
 
