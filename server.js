@@ -291,7 +291,7 @@ app.get('/resetUserScores', async (req, res) => {
   
 app.post('/CreateKeysUnlock', async (req, res) => {
   const keys = [];
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 40; i++) {
     keys.push({
       'key-unlock': generateKey(),
       used: false
