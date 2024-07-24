@@ -26,6 +26,15 @@ app.use(express.json()); // สำหรับ parsing application/json
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const generateKey = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let key = '';
+  for (let i = 0; i < 10; i++) {
+    key += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return key;
+};
+
 
 // ตั้งค่า route ต่างๆ
 app.get('/test11', (req, res) => {
@@ -280,7 +289,71 @@ app.get('/resetUserScores', async (req, res) => {
 });
 
   
-  
+ app.post('/CreateKeysUnlock', async (req, res) => {
+  const keys = [];
+  for (let i = 0; i < 500; i++) {
+    keys.push({
+      id: uuidv4(),
+      key: generateKey(),
+      used: false
+    });
+  }
+
+  const params = {
+    RequestItems: {
+      'duct-users-keys': keys.map(item => ({
+        PutRequest: {
+          Item: item
+        }
+      }))
+    }
+  };
+
+  try {
+    await dynamoDB.batchWrite(params).promise();
+    res.status(200).json({ message: 'Keys created successfully', keys });
+  } catch (error) {
+    console.error('Error creating keys:', error);
+    res.status(500).send(error);
+  }
+});
+
+// Route สำหรับใช้งานคีย์
+app.post('/UseKeyUnlock', async (req, res) => {
+  const { key } = req.body;
+
+  const params = {
+    TableName: 'duct-users-keys',
+    FilterExpression: 'key = :key and used = :used',
+    ExpressionAttributeValues: {
+      ':key': key,
+      ':used': false
+    }
+  };
+
+  try {
+    const data = await dynamoDB.scan(params).promise();
+    if (data.Items.length === 1) {
+      const updateParams = {
+        TableName: 'duct-users-keys',
+        Key: { id: data.Items[0].id },
+        UpdateExpression: 'set used = :used',
+        ExpressionAttributeValues: {
+          ':used': true
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+
+      await dynamoDB.update(updateParams).promise();
+      res.status(200).json({ message: 'Key used successfully', success: true });
+    } else {
+      res.status(404).json({ message: 'Invalid or already used key', success: false });
+    }
+  } catch (error) {
+    console.error('Error using key:', error);
+    res.status(500).send(error);
+  }
+}); 
   
 
   const port = process.env.PORT || 3000;
